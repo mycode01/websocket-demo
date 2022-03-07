@@ -1,5 +1,5 @@
 ### spring boot2 + websocket 을 이용한 msg queue 구현 
-순수 websocket을 이용한 (sockjs, stomp 를 이용하지 않은) 메시지 큐 구현
+websocket을 이용한 (sockjs, stomp 를 이용하지 않은) 메시지 큐 구현
 
 
 ### how to run

@@ -1,6 +1,11 @@
 ### spring boot2 + websocket 을 이용한 msg queue 구현 
-websocket을 이용한 (sockjs, stomp 를 이용하지 않은) 메시지 큐 구현
+websocket(sockjs, STOMP)를 이용한 메시지 큐 구현  
+sockJs, STOMP를 이용해야하기 때문에 화면부가 예제에 추가되어있음.  
+또, 여러 인스턴스 환경에서 동작을 테스트하기 위해 외부 큐를 이용하였음. 
 
+### requirements
+rabbitMQ(+STOMP plugin)  
+mysql
 
 ### how to run
 ```
@@ -9,51 +14,30 @@ websocket을 이용한 (sockjs, stomp 를 이용하지 않은) 메시지 큐 구
 
 ### 클래스 
 #### UserMsg
-websocket client <> websocketHandler 사이의 dto
-#### InternalMsg
-MessageService <> websocketHandler 내부 레이어 사이의 dto
-#### DefaultController
-메시지 채널을 만들기 위한 http api 전용 컨트롤러
-#### WebsocketConfig.MessageHandler
-웹소켓의 이벤트 처리를 담당하는 핸들러. 이 예제에선 restController와 비슷한 역할이라 보면 될거같음.
+websocket client <> MessageHandler 사이의 dto
+#### ChannelController, DefaultController
+메시지 채널을 만들고 보여주기 위한 컨트롤러, 서블릿 엔진을 사용하기 위한 컨트롤러 
+#### MessageHandler
+웹소켓의 이벤트 처리를 담당하는 핸들러.
 #### WebsocketConfig
-웹소켓의 핸들러 설정 및 라우팅 처리 
+웹소켓의 핸드쉐이크 및 엔드포인트, exchange 설정(queue relay)
+#### RabbitMqConfig
+웹소켓 외부 브로커로 사용될 queue의 설정 
 #### IdGenerator
 메시지 채널의 고유한 아이디 생성을 담당
-#### Channel
-메시지 채널, 한개당 채널 한개, 전체 채널은 MessageService가 in-memory로 관리
-#### MessageService
-메시지 채널 생성, join 처리를 위한 서비스
-
+#### Channel, Message
+메시지 채널 및 메시지 로그 
+#### ChannelService
+채널 생성 및 조회를 위한 서비스 
+#### LogService
+메시지 로그처리를 위한 서비스 
 
 ### test
-1. 서버 실행후 메시지 채널 생성을 만들기 위해 아래 api를 실행. 
-```shell
-POST http://localhost:8080/create
->> 17f6367fe830002
-```
-2. 웹소켓 클라이언트를 이용하여 접속한다.
-```shell
-ws://localhost:8080/ws/msg
-Connecting to ws://localhost:8080/ws/msg
-Connected to ws://localhost:8080/ws/msg
-```
-3. 연결이 성공하면 리턴받은 채널 아이디를 이용, json string을 전송한다. 같은 내용이 echo로 전달된다.
-```json
-{
-  "channelId": "17f6367fe830002",
-  "sender": "first",
-  "message": "hi"
-}
-```
-5. 아직 받을수있는 다른 클라이언트가 없으므로, 2에서 했던것처럼 다른 커넥션을 새로 생성한다.
-6. 연결이 성공하면 마찬가지로 json string을 생성하여 전송한다. 
-```json
-{
-  "channelId": "17f6367fe830002",
-  "sender": "second",
-  "message": "hi2"
-}
-```
-7. 첫번째 클라이언트와 두번째 클라이언트 모두 같은 echo가 전달되었는지 확인한다.
-8. 격리된 채널임을 확인하기 위해서 1부터 다시 시도하여 메시지가 서로 얽히지 않는것을 확인한다. 
+1. 각 환경에 맞게 application.properties 및 RabbitMqConfig 수정.
+2. 멀티 인스턴스에서의 동작을 확인하기 위해 두개의 인스턴스를 실행시킨다.
+3. 로그에서 각 인스턴스의 http 포트를 확인 후 브라우저에서 아래 경로로 접근한다.
+```localhost:port번호/index```
+4. 메시지 전달을 위한 채널을 생성한 후 각 브라우저에서 해당 채널로 이동한다.
+5. 각 브라우저에서 메시지 전송을 확인, 각 인스턴스에서 로그를 확인한다. 
+6. db를 확인하여 각 메시지가 로깅되고 있음을 확인한다.
+7. 격리된 채널임을 확인하기 위해서 4부터 다시 시도하여 채널간 메시지가 서로 얽히지 않는것을 확인한다. 

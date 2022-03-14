@@ -2,6 +2,7 @@ package com.example.demo.websocket;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.example.demo.websocket.service.IdGenerator;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;

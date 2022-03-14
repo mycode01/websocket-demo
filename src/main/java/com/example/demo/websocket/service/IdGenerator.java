@@ -1,4 +1,4 @@
-package com.example.demo.websocket;
+package com.example.demo.websocket.service;
 
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
